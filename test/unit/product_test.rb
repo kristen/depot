@@ -12,23 +12,23 @@ class ProductTest < ActiveSupport::TestCase
 		assert product.errors[:image_url].any?
 	end
 
-	test "produce price must be positive" do
-		product = Product.new(title: "My Book Title",
-													description: "yyy",
-													image_url: "zzz.jpg")
-		product.price = -1
-		assert product.invalid?
-		assert_equal Il8n.translate('activerecord.errors.messages.taken'),
-			product.errors[:price].join("; ")
+  test "product price must be positive" do
+    product = Product.new(title:       "My Book Title",
+                          description: "yyy",
+                          image_url:   "zzz.jpg")
+    product.price = -1
+    assert product.invalid?
+    assert_equal "must be greater than or equal to 0.01", 
+      product.errors[:price].join('; ')
 
-		product.price = 0
-		assert product.invalid?
-		assert_equal Il8n.translate('activerecord.errors.messages.taken'),
-			product.errors[:price].join("; ")
+    product.price = 0
+    assert product.invalid?
+    assert_equal "must be greater than or equal to 0.01", 
+      product.errors[:price].join('; ')
 
-		product.price = 1
-		assert product.valid?
-	end
+    product.price = 1
+    assert product.valid?
+  end
 
 	def new_product(image_url)
 		Product.new(title: "My Book Title",
@@ -51,15 +51,24 @@ class ProductTest < ActiveSupport::TestCase
 	end
 
 	test "product is not valid without a unique title" do
-		product = Product.new(title: products(:ruby).title,
-													description: "yyy",
-													price: 1,
-													image_url: "fred.gif")
-		assert !product.save
-		# assert_equal "has already been taken", product.errors[:title],join('; ')
-		# In case you don't want to use the hard coded error message ...
-		assert_equal Il8n.translate('activerecord.errors.messages.taken'), product.errors[:title].join(': ')
-	end
+    product = Product.new(title:       products(:ruby).title,
+                          description: "yyy", 
+                          price:       1, 
+                          image_url:   "fred.gif")
+    assert !product.save
+    assert_equal "has already been taken", product.errors[:title].join('; ')
+  end
+
+  test "product is not valid without a unique title - i18n" do
+    product = Product.new(title:       products(:ruby).title,
+                          description: "yyy", 
+                          price:       1, 
+                          image_url:   "fred.gif")
+
+    assert !product.save
+    assert_equal I18n.translate('activerecord.errors.messages.taken'),
+                 product.errors[:title].join('; ')
+  end
 
 	test "title must be at least 10 characters" do
 		product = Product.new(description: "yyy",
@@ -67,15 +76,14 @@ class ProductTest < ActiveSupport::TestCase
 													image_url: "zzz.jpg")
 
 		# less than 10 character test
-		product.title = "hi"
+		product.title = "hibyehiby"
 		assert product.invalid?
-		assert_equal Il8n.translate('activerecord.errors.messages.taken'), product.errors[:title].join(': ')
+		assert_equal "must be at least 10 characters long", product.errors[:title].join('; ')
 	
 		# exactly 10 character test
 		product.title = "characters"
-		assert product.invalid?
-		assert_equal Il8n.translate('activerecord.errors.messages.taken'), product.errors[:title].join(': ')
-	
+		assert product.valid?
+		
 		# greater than 10 character test
 		product.title = "This is a description that is longer than 10 characters"
 		assert product.valid?
