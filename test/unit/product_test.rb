@@ -18,12 +18,12 @@ class ProductTest < ActiveSupport::TestCase
 													image_url: "zzz.jpg")
 		product.price = -1
 		assert product.invalid?
-		assert_equal "must be greater than or equal to 0.01",
+		assert_equal Il8n.translate('activerecord.errors.messages.taken'),
 			product.errors[:price].join("; ")
 
 		product.price = 0
 		assert product.invalid?
-		assert_equal "must be greater than or equal to 0.01",
+		assert_equal Il8n.translate('activerecord.errors.messages.taken'),
 			product.errors[:price].join("; ")
 
 		product.price = 1
@@ -59,5 +59,25 @@ class ProductTest < ActiveSupport::TestCase
 		# assert_equal "has already been taken", product.errors[:title],join('; ')
 		# In case you don't want to use the hard coded error message ...
 		assert_equal Il8n.translate('activerecord.errors.messages.taken'), product.errors[:title].join(': ')
+	end
+
+	test "title must be at least 10 characters" do
+		product = Product.new(description: "yyy",
+													price: 1,
+													image_url: "zzz.jpg")
+
+		# less than 10 character test
+		product.title = "hi"
+		assert product.invalid?
+		assert_equal Il8n.translate('activerecord.errors.messages.taken'), product.errors[:title].join(': ')
+	
+		# exactly 10 character test
+		product.title = "characters"
+		assert product.invalid?
+		assert_equal Il8n.translate('activerecord.errors.messages.taken'), product.errors[:title].join(': ')
+	
+		# greater than 10 character test
+		product.title = "This is a description that is longer than 10 characters"
+		assert product.valid?
 	end
 end
